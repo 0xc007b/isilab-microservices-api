@@ -30,7 +30,7 @@ Le système est composé de 5 services principaux :
 ### Ports des Services
 
 - **API Gateway**: `8080`
-- **Eureka Server**: `8761`  
+- **Eureka Server**: `8761`
 - **Customer Service**: `8081`
 - **Product Service**: `8082`
 - **Order Service**: `8083`
@@ -38,7 +38,7 @@ Le système est composé de 5 services principaux :
 ### Bases de Données PostgreSQL
 
 - **Customer DB**: `localhost:5432` (user: `client_user`, db: `client_db`)
-- **Product DB**: `localhost:5433` (user: `product_user`, db: `product_db`)  
+- **Product DB**: `localhost:5433` (user: `product_user`, db: `product_db`)
 - **Order DB**: `localhost:5434` (user: `order_user`, db: `order_db`)
 
 ### Variables d'Environnement
@@ -78,8 +78,6 @@ SPRING_PROFILES_ACTIVE=docker
 # Dans chaque dossier de service (eureka-server, api-gateway, customer-service, product-service, order-service)
 mvn clean package -DskipTests
 
-# Ou utiliser le script de build complet (si disponible)
-./build-all-services.sh
 ~~~
 
 2) **Démarrer l'écosystème complet :**
@@ -133,13 +131,13 @@ CREATE DATABASE client_db;
 CREATE USER client_user WITH ENCRYPTED PASSWORD 'client_pass';
 GRANT ALL PRIVILEGES ON DATABASE client_db TO client_user;
 
--- Base Product Service  
+-- Base Product Service
 CREATE DATABASE product_db;
 CREATE USER product_user WITH ENCRYPTED PASSWORD 'product_pass';
 GRANT ALL PRIVILEGES ON DATABASE product_db TO product_user;
 
 -- Base Order Service
-CREATE DATABASE order_db; 
+CREATE DATABASE order_db;
 CREATE USER order_user WITH ENCRYPTED PASSWORD 'order_pass';
 GRANT ALL PRIVILEGES ON DATABASE order_db TO order_user;
 ~~~
@@ -154,7 +152,7 @@ mvn spring-boot:run
 
 2) **API Gateway** :
 ~~~bash
-cd api-gateway  
+cd api-gateway
 mvn spring-boot:run
 ~~~
 
@@ -164,7 +162,7 @@ mvn spring-boot:run
 cd customer-service
 mvn spring-boot:run
 
-# Terminal 2 - Product Service  
+# Terminal 2 - Product Service
 cd product-service
 mvn spring-boot:run
 
@@ -203,7 +201,7 @@ public class Customer {
 
 ### Product (Service Produit)
 ```java
-@Entity  
+@Entity
 public class Product {
     @Id @GeneratedValue
     private Long id;
@@ -228,20 +226,20 @@ public class Order {
     private LocalDateTime orderDate;
     private BigDecimal totalAmount;
     private OrderStatus status; // PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
-    
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
 }
 
 @Entity
 public class OrderItem {
-    @Id @GeneratedValue  
+    @Id @GeneratedValue
     private Long id;
     private Long productId;     // référence vers Product Service
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal subtotal;
-    
+
     @ManyToOne
     private Order order;
 }
@@ -274,7 +272,7 @@ Le projet utilise une architecture en couches avec séparation claire des DTOs :
 **Via Gateway**: `/customers`
 
 - `GET /customers` → Liste des clients
-- `GET /customers/{id}` → Détail d'un client  
+- `GET /customers/{id}` → Détail d'un client
 - `POST /customers` → Créer un client
 - `PUT /customers/{id}` → Mettre à jour un client
 - `DELETE /customers/{id}` → Supprimer un client
@@ -284,7 +282,7 @@ Le projet utilise une architecture en couches avec séparation claire des DTOs :
 POST /customers
 {
   "firstName": "Jean",
-  "lastName": "Dupont", 
+  "lastName": "Dupont",
   "email": "jean.dupont@email.com",
   "phoneNumber": "+33123456789",
   "address": "123 Rue de la Paix, Paris"
@@ -298,7 +296,7 @@ POST /customers
 - `GET /products` → Liste des produits
 - `GET /products/{id}` → Détail d'un produit
 - `POST /products` → Créer un produit
-- `PUT /products/{id}` → Mettre à jour un produit  
+- `PUT /products/{id}` → Mettre à jour un produit
 - `DELETE /products/{id}` → Supprimer un produit
 - `PUT /products/{id}/stock` → Mettre à jour le stock
 
@@ -336,7 +334,7 @@ POST /orders
       "quantity": 2
     },
     {
-      "productId": 2, 
+      "productId": 2,
       "quantity": 1
     }
   ]
@@ -410,7 +408,7 @@ curl -X GET "http://localhost:8080/orders/customer/1"
 {
   "timestamp": "2024-01-15T10:30:45Z",
   "status": 400,
-  "error": "Bad Request", 
+  "error": "Bad Request",
   "message": "Validation failed",
   "path": "/orders",
   "details": {
@@ -428,7 +426,7 @@ curl -X GET "http://localhost:8080/orders/customer/1"
 Chaque service expose des endpoints de monitoring :
 
 - `/actuator/health` - État de santé du service
-- `/actuator/info` - Informations sur l'application  
+- `/actuator/info` - Informations sur l'application
 - `/actuator/metrics` - Métriques applicatives
 - `/actuator/prometheus` - Métriques au format Prometheus
 
@@ -447,7 +445,7 @@ Chaque service expose des endpoints de monitoring :
 Chaque service expose sa documentation Swagger :
 
 - **Customer Service**: http://localhost:8081/swagger-ui.html
-- **Product Service**: http://localhost:8082/swagger-ui.html  
+- **Product Service**: http://localhost:8082/swagger-ui.html
 - **Order Service**: http://localhost:8083/swagger-ui.html
 
 **Via API Gateway** (recommandé) :
@@ -458,7 +456,7 @@ Chaque service expose sa documentation Swagger :
 ### Fonctionnalités Swagger
 - Interface interactive pour tester tous les endpoints
 - Documentation complète des schémas de données
-- Exemples de requêtes et réponses  
+- Exemples de requêtes et réponses
 - Validation en temps réel des paramètres
 
 ## Profils de Configuration
@@ -495,7 +493,7 @@ Chaque service implémente une suite complète de tests :
 
 **Tests unitaires** :
 - Controllers (MockMvc)
-- Services (logique métier)  
+- Services (logique métier)
 - Mappers (conversions DTO/Entité)
 
 **Tests d'intégration** :
@@ -508,7 +506,7 @@ Chaque service implémente une suite complète de tests :
 # Tests unitaires uniquement
 mvn test
 
-# Tests d'intégration avec TestContainers  
+# Tests d'intégration avec TestContainers
 mvn verify
 
 # Tests avec couverture de code
@@ -519,7 +517,7 @@ mvn test jacoco:report
 
 ### Prérequis développeur
 - **Java 17+**
-- **Maven 3.8+**  
+- **Maven 3.8+**
 - **Docker** (pour TestContainers et déploiement)
 - **PostgreSQL** (pour développement local)
 - **IDE** avec support Lombok et annotations processing
@@ -559,7 +557,7 @@ docker compose build --no-cache
 # Démarrage complet
 docker compose up -d
 
-# Scaling d'un service  
+# Scaling d'un service
 docker compose up -d --scale customer-service=2
 
 # Mise à jour d'un service
@@ -575,14 +573,14 @@ docker compose up -d customer-service
 
 ### Variables d'environnement de production
 ~~~bash
-# Profil de production  
+# Profil de production
 SPRING_PROFILES_ACTIVE=prod
 
 # Configuration base de données sécurisée
 DB_USERNAME=${DB_USER_SECRET}
 DB_PASSWORD=${DB_PASSWORD_SECRET}
 
-# URLs des services  
+# URLs des services
 EUREKA_SERVER_URL=http://eureka:8761/eureka/
 CUSTOMER_SERVICE_URL=http://customer-service:8081
 PRODUCT_SERVICE_URL=http://product-service:8082
@@ -603,7 +601,7 @@ METRICS_ENABLED=true
 
 **Erreurs de base de données** :
 - Vérifier que PostgreSQL est démarré et accessible
-- Contrôler les credentials et URLs de connexion  
+- Contrôler les credentials et URLs de connexion
 - Vérifier que les migrations Flyway sont à jour
 
 **Communication inter-services échoue** :
@@ -627,7 +625,7 @@ curl http://localhost:8761/eureka/apps
 ~~~bash
 # Via Gateway
 curl http://localhost:8080/customers/actuator/health
-curl http://localhost:8080/products/actuator/health  
+curl http://localhost:8080/products/actuator/health
 curl http://localhost:8080/orders/actuator/health
 ~~~
 
@@ -643,7 +641,7 @@ docker compose logs -f <service-name>
 1. **Fork** le projet
 2. **Créer une branche** feature (`git checkout -b feature/amazing-feature`)
 3. **Commiter** les changements (`git commit -m 'Add amazing feature'`)
-4. **Push** la branche (`git push origin feature/amazing-feature`) 
+4. **Push** la branche (`git push origin feature/amazing-feature`)
 5. **Ouvrir une Pull Request**
 
 ## License
@@ -659,6 +657,6 @@ Pour toute question ou problème :
 
 ---
 
-**Équipe de développement** : Backend Team  
-**Version** : 1.0.0  
+**Équipe de développement** : Backend Team
+**Version** : 1.0.0
 **Dernière mise à jour** : Janvier 2024
