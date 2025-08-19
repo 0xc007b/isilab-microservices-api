@@ -19,7 +19,7 @@ public class GatewayConfig {
                 // ===============================================
                 // ROUTES POUR CLIENT SERVICE
                 // ===============================================
-                .route("client-service", r -> r
+                .route("customer-service", r -> r
                         .path("/api/customers/**")
                         .and()
                         .method(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE)
@@ -28,7 +28,7 @@ public class GatewayConfig {
                                 .addRequestHeader("X-Gateway", "api-gateway")
                                 .addRequestHeader("X-Request-Time", String.valueOf(System.currentTimeMillis()))
                         )
-                        .uri("lb://client-service")
+                        .uri("lb://customer-service")
                 )
 
                 // ===============================================

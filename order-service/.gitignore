@@ -1,0 +1,162 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+logs/
+*.log.*
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Virtual machine crash logs
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.externalToolBuilders/
+.classpath
+.factorypath
+.buildpath
+.target
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Spring Boot
+*.original
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# H2 Database files
+*.h2.db
+*.trace.db
+*.lock.db
+
+# Application specific
+application-local.yml
+application-local.properties
+application-dev.yml
+application-dev.properties
+application-secret.yml
+application-secret.properties
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Kubernetes
+k8s-secrets.yml
+*.key
+*.crt
+*.pem
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Generated documentation
+/docs/build/
+
+# Test coverage
+/coverage/
+*.lcov
+
+# Application logs directory
+logs/
+*.log
+
+# JVM memory dumps
+*.hprof
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
+
+# Application specific configuration files that should not be versioned
+config/application-production.yml
+config/secrets.yml
+
+# IDE specific project files
+*.sublime-project
+*.sublime-workspace
+
+# Maven Wrapper (uncomment if you don't want to version it)
+# !/.mvn/wrapper/maven-wrapper.jar

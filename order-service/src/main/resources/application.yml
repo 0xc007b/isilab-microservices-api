@@ -1,13 +1,13 @@
-# Configuration du service Customer
+# Configuration du service Order
 spring:
   application:
-    name: customer-service
+    name: order-service
 
   # Configuration de la base de données
   datasource:
-    url: jdbc:postgresql://localhost:5432/customer_db
-    username: ${DB_USERNAME:customer_user}
-    password: ${DB_PASSWORD:customer_password}
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: ${DB_USERNAME:order_user}
+    password: ${DB_PASSWORD:order_password}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 20000
@@ -37,15 +37,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     validate-on-migrate: true
-    table: flyway_schema_history_customer
 
   # Configuration des profils
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  main:
+    allow-bean-definition-overriding: true
 
 # Configuration du serveur
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8083}
   servlet:
     context-path: /
   error:
@@ -73,7 +75,7 @@ eureka:
       version: 1.0.0
       team: backend
 
-# Configuration de Feign (pour les futures communications avec d'autres services)
+# Configuration de Feign pour les communications inter-services
 feign:
   client:
     config:
@@ -81,22 +83,36 @@ feign:
         connect-timeout: 5000
         read-timeout: 5000
         logger-level: basic
+      customer-service:
+        connect-timeout: 3000
+        read-timeout: 10000
+        logger-level: full
+      product-service:
+        connect-timeout: 3000
+        read-timeout: 10000
+        logger-level: full
   circuitbreaker:
     enabled: true
+  compression:
+    request:
+      enabled: true
+    response:
+      enabled: true
 
 # Configuration des logs
 logging:
   level:
-    com.flrxnt.customer: ${LOG_LEVEL:DEBUG}
+    com.flrxnt.order: ${LOG_LEVEL:DEBUG}
     org.springframework.web: INFO
     org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
     org.hibernate.type.descriptor.sql.BasicBinder: WARN
     org.springframework.cloud.netflix.eureka: INFO
+    org.springframework.cloud.openfeign: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: ${LOG_FILE:logs/customer-service.log}
+    name: ${LOG_FILE:logs/order-service.log}
 
 # Configuration Actuator
 management:
@@ -141,21 +157,34 @@ springdoc:
     filter: true
   show-actuator: true
   group-configs:
-    - group: "customer-api"
-      display-name: "Customer Management API"
-      paths-to-match: "/api/customers/**"
+    - group: "order-api"
+      display-name: "Order Management API"
+      paths-to-match: "/api/orders/**"
 
 # Configuration de l'application
 app:
-  name: "Customer Management Service"
+  name: "Order Management Service"
   version: "1.0.0"
-  description: "Service de gestion des clients pour le système de commandes"
+  description: "Service de gestion des commandes pour le système de commandes"
   contact:
     name: "Équipe Backend"
     email: "backend@orderms.com"
 
+  # Configuration des services externes
+  services:
+    customer-service:
+      url: ${CUSTOMER_SERVICE_URL:http://localhost:8081}
+      timeout: 5000
+    product-service:
+      url: ${PRODUCT_SERVICE_URL:http://localhost:8082}
+      timeout: 5000
+
   # Configuration métier
   business:
+    order:
+      max-items-per-order: ${MAX_ITEMS_PER_ORDER:50}
+      auto-cancel-after-days: ${AUTO_CANCEL_DAYS:7}
+      attention-threshold-hours: ${ATTENTION_THRESHOLD:72}
     pagination:
       default-page-size: ${DEFAULT_PAGE_SIZE:10}
       max-page-size: ${MAX_PAGE_SIZE:100}
@@ -167,7 +196,7 @@ cache:
     host: ${REDIS_HOST:localhost}
     port: ${REDIS_PORT:6379}
     timeout: 2000
-    database: 2
+    database: 3
 
 ---
 # Profil de développement
@@ -176,26 +205,35 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:h2:mem:customer_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:order_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
+
     show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
   h2:
     console:
       enabled: true
+
       path: /h2-console
+
   flyway:
     enabled: false
 
 logging:
   level:
-    com.flrxnt.customer: DEBUG
+    com.flrxnt.order: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.springframework.cloud.openfeign: DEBUG
 
 ---
 # Profil de test
@@ -219,9 +257,15 @@ eureka:
   client:
     enabled: false
 
+feign:
+  client:
+    config:
+      default:
+        logger-level: none
+
 logging:
   level:
-    com.flrxnt.customer: INFO
+    com.flrxnt.order: INFO
     org.springframework.web: WARN
     org.hibernate: WARN
 
@@ -241,11 +285,12 @@ spring:
 
 logging:
   level:
-    com.flrxnt.customer: INFO
+    com.flrxnt.order: INFO
     org.hibernate.SQL: WARN
     org.springframework.web: WARN
+    org.springframework.cloud.openfeign: WARN
   file:
-    name: /var/log/customer-service/customer-service.log
+    name: /var/log/order-service/order-service.log
 
 management:
   endpoint:
@@ -259,9 +304,9 @@ spring:
     activate:
       on-profile: docker
   datasource:
-    url: jdbc:postgresql://postgres-customer:5432/customer_db
-    username: ${DB_USERNAME:customer_user}
-    password: ${DB_PASSWORD:customer_password}
+    url: jdbc:postgresql://postgres-order:5432/order_db
+    username: ${DB_USERNAME:order_user}
+    password: ${DB_PASSWORD:order_password}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 30000
@@ -285,9 +330,9 @@ eureka:
     initial-instance-info-replication-interval-seconds: 40
     instance-info-replication-interval-seconds: 30
   instance:
-    hostname: ${HOSTNAME:customer-service}
+    hostname: ${HOSTNAME:order-service}
     prefer-ip-address: false
-    instance-id: ${spring.application.name}:${HOSTNAME:customer-service}:${server.port}
+    instance-id: ${spring.application.name}:${HOSTNAME:order-service}:${server.port}
     lease-renewal-interval-in-seconds: 30
     lease-expiration-duration-in-seconds: 90
     metadata-map:
@@ -295,17 +340,26 @@ eureka:
       version: 1.0.0
       management.context-path: /actuator
 
+# Configuration des services pour Docker
+app:
+  services:
+    customer-service:
+      url: ${CUSTOMER_SERVICE_URL:http://customer-service:8081}
+    product-service:
+      url: ${PRODUCT_SERVICE_URL:http://product-service:8082}
+
 # Configuration des logs pour Docker
 logging:
   level:
-    com.flrxnt.customer: ${LOG_LEVEL:INFO}
+    com.flrxnt.order: ${LOG_LEVEL:INFO}
     org.hibernate.SQL: WARN
     org.springframework.web: WARN
     org.springframework.cloud.netflix.eureka: INFO
+    org.springframework.cloud.openfeign: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
   file:
-    name: /app/logs/customer-service.log
+    name: /app/logs/order-service.log
 
 # Configuration health check pour Docker
 management:
