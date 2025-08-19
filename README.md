@@ -635,28 +635,3 @@ docker compose logs -f <service-name>
 ~~~
 
 ---
-
-## Contribution
-
-1. **Fork** le projet
-2. **Créer une branche** feature (`git checkout -b feature/amazing-feature`)
-3. **Commiter** les changements (`git commit -m 'Add amazing feature'`)
-4. **Push** la branche (`git push origin feature/amazing-feature`)
-5. **Ouvrir une Pull Request**
-
-## License
-
-Ce projet est sous license MIT. Voir le fichier `LICENSE` pour plus de détails.
-
-## Support
-
-Pour toute question ou problème :
-- **Issues GitHub** : [Créer un issue](https://github.com/your-org/order-management-system/issues)
-- **Documentation** : Swagger UI disponible sur chaque service
-- **Monitoring** : Dashboards Actuator et Eureka disponibles
-
----
-
-**Équipe de développement** : Backend Team
-**Version** : 1.0.0
-**Dernière mise à jour** : Janvier 2024
