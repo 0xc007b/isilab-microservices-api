@@ -12,29 +12,29 @@ spring:
   # Configuration Spring Cloud Gateway
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-
       # Configuration globale des filtres
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
-        - AddResponseHeader=X-Response-Time, #{T(System).currentTimeMillis()}
-
       # Configuration globale CORS
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns: "*"
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
+      server:
+        webflux:
+          discovery:
+            locator:
+              lower-case-service-id: true
+              enabled: true
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+            - AddResponseHeader=X-Response-Time, #{T(System).currentTimeMillis()}
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                          allowedOriginPatterns: "*"
+                          allowedMethods:
+                            - GET
+                            - POST
+                            - PUT
+                            - DELETE
+                            - OPTIONS
+                          allowedHeaders: "*"
+                          allowCredentials: true
 
 # Configuration Eureka Client
 eureka:
@@ -57,7 +57,7 @@ management:
     health:
       show-details: always
     gateway:
-      enabled: true
+      access: unrestricted
 
 # Configuration des logs
 logging:

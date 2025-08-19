@@ -1,0 +1,96 @@
+# Dockerignore pour optimiser la construction de l'image Docker du Customer Service
+
+# Fichiers et dossiers à ignorer lors de la construction Docker
+
+# Target directory (contient les fichiers compilés)
+target/
+!target/customer-service-*.jar
+
+# Dossiers de build Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+logs/
+*.log
+
+# IDE files
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation et fichiers de développement
+README.md
+HELP.md
+*.md
+docs/
+
+# Fichiers de configuration locaux
+application-local.yml
+application-dev.properties
+*.env
+
+# Base de données locales
+*.db
+*.h2.db
+
+# Fichiers temporaires
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# Test results
+test-results/
+.pytest_cache/
+
+# Node modules (si utilisé pour des outils frontend)
+node_modules/
+npm-debug.log*
+
+# Autres fichiers de build
+*.war
+*.ear
+*.class
+
+# Spring Boot
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Scripts de développement
+scripts/
