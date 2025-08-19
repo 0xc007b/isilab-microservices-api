@@ -1,0 +1,78 @@
+# Configuration du serveur Eureka
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+  # Profil par défaut
+  profiles:
+    active: dev
+
+eureka:
+  instance:
+    hostname: localhost
+    prefer-ip-address: true
+
+  client:
+    # Ne pas s'enregistrer lui-même
+    register-with-eureka: false
+    # Ne pas récupérer le registre (il EST le registre)
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    # Désactiver la protection CSRF pour l'environnement de développement
+    enable-self-preservation: false
+    # Intervalle de nettoyage des instances inactives (en ms)
+    eviction-interval-timer-in-ms: 10000
+    # Temps d'attente avant de considérer qu'une instance est hors ligne
+    renewal-threshold-update-interval-ms: 15000
+
+# Configuration du monitoring avec Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Configuration des logs
+logging:
+  level:
+    com.netflix: WARN
+    org.springframework.cloud: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+# Profil pour le développement
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    root: DEBUG
+
+---
+# Profil pour la production
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+eureka:
+  server:
+    enable-self-preservation: true
+
+logging:
+  level:
+    root: WARN
+    com.orderms: INFO

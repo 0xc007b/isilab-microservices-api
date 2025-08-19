@@ -1,0 +1,260 @@
+version: "3.8"
+
+services:
+  # ===========================================
+  # BASES DE DONNÉES
+  # ===========================================
+
+  postgres-client:
+    image: postgres:15-alpine
+    container_name: postgres-client
+    environment:
+      POSTGRES_DB: client_db
+      POSTGRES_USER: client_user
+      POSTGRES_PASSWORD: client_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_client_data:/var/lib/postgresql/data
+      - ./init-scripts/init-client-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - orderms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U client_user -d client_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-product:
+    image: postgres:15-alpine
+    container_name: postgres-product
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: product_user
+      POSTGRES_PASSWORD: product_pass
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_product_data:/var/lib/postgresql/data
+      - ./init-scripts/init-product-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - orderms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U product_user -d product_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: order_user
+      POSTGRES_PASSWORD: order_pass
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+      - ./init-scripts/init-order-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - orderms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_user -d order_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ===========================================
+  # INFRASTRUCTURE SERVICES
+  # ===========================================
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - orderms-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8761/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - orderms-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ===========================================
+  # MICROSERVICES
+  # ===========================================
+
+  client-service:
+    build:
+      context: ./client-service
+      dockerfile: Dockerfile
+    container_name: client-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-client:5432/client_db
+      - SPRING_DATASOURCE_USERNAME=client_user
+      - SPRING_DATASOURCE_PASSWORD=client_pass
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-client:
+        condition: service_healthy
+    networks:
+      - orderms-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8081/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-product:5432/product_db
+      - SPRING_DATASOURCE_USERNAME=product_user
+      - SPRING_DATASOURCE_PASSWORD=product_pass
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-product:
+        condition: service_healthy
+    networks:
+      - orderms-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8082/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-order:5432/order_db
+      - SPRING_DATASOURCE_USERNAME=order_user
+      - SPRING_DATASOURCE_PASSWORD=order_pass
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      postgres-order:
+        condition: service_healthy
+      client-service:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    networks:
+      - orderms-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8083/actuator/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# ===========================================
+# VOLUMES
+# ===========================================
+volumes:
+  postgres_client_data:
+    driver: local
+  postgres_product_data:
+    driver: local
+  postgres_order_data:
+    driver: local
+
+# ===========================================
+# NETWORKS
+# ===========================================
+networks:
+  orderms-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
