@@ -20,7 +20,7 @@ public class GatewayConfig {
                 // ROUTES POUR CLIENT SERVICE
                 // ===============================================
                 .route("client-service", r -> r
-                        .path("/api/clients/**")
+                        .path("/api/customers/**")
                         .and()
                         .method(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT, HttpMethod.DELETE)
                         .filters(f -> f

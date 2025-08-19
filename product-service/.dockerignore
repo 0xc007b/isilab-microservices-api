@@ -1,0 +1,75 @@
+# Ignore Git files
+.git
+.gitignore
+
+# Ignore IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.metadata/
+.recommenders/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore Maven files (keep only what's needed for build)
+target/
+.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+!mvnw
+!mvnw.cmd
+!pom.xml
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore temporary files
+*.tmp
+*.temp
+.temp/
+.tmp/
+
+# Ignore backup files
+*.bak
+*.backup
+*~
+
+# Ignore test files and coverage reports
+*.coverage
+coverage/
+.nyc_output/
+
+# Ignore documentation (not needed in runtime image)
+*.md
+docs/
+README*
+CHANGELOG*
+LICENSE*
+
+# Ignore Docker files (except the ones needed)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Ignore environment files
+.env
+.env.*
+!.env.example
+
+# Ignore node modules if any
+node_modules/
+
+# Ignore build artifacts that shouldn't be in container
+build/
+dist/
+out/
+
+# Ignore test resources that might be large
+src/test/resources/large-files/

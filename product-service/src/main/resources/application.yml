@@ -1,0 +1,327 @@
+# Configuration du service Product
+spring:
+  application:
+    name: product-service
+
+  # Configuration de la base de données
+  datasource:
+    url: jdbc:postgresql://localhost:5432/product_db
+    username: ${DB_USERNAME:product_user}
+    password: ${DB_PASSWORD:product_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+
+  # Configuration JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          time_zone: UTC
+    open-in-view: false
+
+  # Configuration Flyway pour les migrations
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  # Configuration des profils
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Configuration du serveur
+server:
+  port: ${PORT:8082}
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+# Configuration Eureka Client
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    healthcheck:
+      enabled: true
+  instance:
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      zone: primary
+      version: 1.0.0
+      team: backend
+
+# Configuration de Feign (pour les futures communications avec d'autres services)
+feign:
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 5000
+        logger-level: basic
+  circuitbreaker:
+    enabled: true
+
+# Configuration des logs
+logging:
+  level:
+    com.flrxnt.product: ${LOG_LEVEL:DEBUG}
+    org.springframework.web: INFO
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    org.springframework.cloud.netflix.eureka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOG_FILE:logs/product-service.log}
+
+# Configuration Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,env
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      show-components: always
+  health:
+    diskspace:
+      enabled: true
+    db:
+      enabled: true
+  info:
+    env:
+      enabled: true
+    build:
+      enabled: true
+    git:
+      enabled: true
+      mode: full
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Configuration OpenAPI/Swagger
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+  show-actuator: true
+  group-configs:
+    - group: "product-api"
+      display-name: "Product Management API"
+      paths-to-match: "/api/products/**"
+
+# Configuration de l'application
+app:
+  name: "Product Management Service"
+  version: "1.0.0"
+  description: "Service de gestion des produits pour le système de commandes"
+  contact:
+    name: "Équipe Backend"
+    email: "backend@orderms.com"
+
+  # Configuration métier
+  business:
+    stock:
+      low-threshold: ${LOW_STOCK_THRESHOLD:10}
+      critical-threshold: ${CRITICAL_STOCK_THRESHOLD:5}
+    pagination:
+      default-page-size: ${DEFAULT_PAGE_SIZE:10}
+      max-page-size: ${MAX_PAGE_SIZE:100}
+
+# Configuration de cache (si nécessaire)
+cache:
+  redis:
+    enabled: false
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: 2000
+    database: 1
+
+---
+# Profil de développement
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:product_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    ignore-migration-patterns: "*:missing,*:ignored,*:failed"
+
+logging:
+  level:
+    com.flrxnt.product: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+---
+# Profil de test
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  flyway:
+    enabled: false
+
+eureka:
+  client:
+    enabled: false
+
+logging:
+  level:
+    com.flrxnt.product: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+
+---
+# Profil de production
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    validate-on-migrate: true
+    clean-disabled: true
+
+logging:
+  level:
+    com.flrxnt.product: INFO
+    org.hibernate.SQL: WARN
+    org.springframework.web: WARN
+  file:
+    name: /var/log/product-service/product-service.log
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+---
+# Profil Docker
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres-product:5432/product_db
+    username: ${DB_USERNAME:product_user}
+    password: ${DB_PASSWORD:product_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      leak-detection-threshold: 60000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+# Configuration Eureka pour Docker
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    initial-instance-info-replication-interval-seconds: 40
+    instance-info-replication-interval-seconds: 30
+  instance:
+    hostname: ${HOSTNAME:product-service}
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${HOSTNAME:product-service}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      zone: docker
+      version: 1.0.0
+      management.context-path: /actuator
+
+# Configuration des logs pour Docker
+logging:
+  level:
+    com.flrxnt.product: ${LOG_LEVEL:INFO}
+    org.hibernate.SQL: WARN
+    org.springframework.web: WARN
+    org.springframework.cloud.netflix.eureka: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n"
+  file:
+    name: /app/logs/product-service.log
+
+# Configuration health check pour Docker
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
